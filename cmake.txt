@@ -1,0 +1,31 @@
+# CMake version
+cmake_minimum_required(VERSION 3.10)
+
+# Project name and version
+project(RedisClone VERSION 1.0)
+
+# Source files
+file(GLOB SOURCES "src/*.cpp")
+
+# Include directories
+include_directories(include)
+
+# Executable target
+add_executable(${PROJECT_NAME} ${SOURCES})
+
+# Linking to libraries
+target_link_libraries(${PROJECT_NAME} pthread) # Link with pthread for threading (Linux compatibility)
+
+# Setting the C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+# Options for building
+option(BUILD_TESTS "Build unit tests" OFF)
+
+if (BUILD_TESTS)
+    # Add tests directory for unit tests
+    file(GLOB TEST_SOURCES "tests/*.cpp")
+    add_executable(${PROJECT_NAME}_tests ${TEST_SOURCES})
+    target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME} pthread)
+endif()
