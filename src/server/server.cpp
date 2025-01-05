@@ -9,7 +9,10 @@
 const int PORT = 6379;
 const int MAX_CLIENTS = 10;
 
-void handleClient(SOCKET clientSocket);
+void handleClient(SOCKET clientSocket){
+    ClientHandler handler(clientSocket);
+    handler.handle();
+}
 
 int main()
 {
@@ -70,8 +73,10 @@ int main()
         clientThreads.push_back(std::move(clientThread));
     }
 
-    for(auto &t: clientThreads) {
-        if(t.joinable()) {
+    for (auto &t : clientThreads)
+    {
+        if (t.joinable())
+        {
             t.join();
         }
     }

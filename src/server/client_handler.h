@@ -9,6 +9,7 @@ public:
     ClientHandler(SOCKET clientSocket);
     ~ClientHandler();
 
+    void setNonBlocking(SOCKET sock);
     void handle();
     void convertToLowerCase(std::string& str);
 

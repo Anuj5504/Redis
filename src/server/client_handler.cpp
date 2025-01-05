@@ -2,7 +2,7 @@
 #include <iostream>
 #include <cstring>
 
-void setNonBlocking(SOCKET sock)
+void ClientHandler::setNonBlocking(SOCKET sock)
 {
     u_long mode = 0;
     ioctlsocket(sock, FIONBIO, &mode);
