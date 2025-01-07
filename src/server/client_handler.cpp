@@ -1,4 +1,5 @@
 #include "client_handler.h"
+#include "../decoder/resp_decoder.h"
 #include <iostream>
 #include <cstring>
 
@@ -78,27 +79,33 @@ void ClientHandler::handle()
 void ClientHandler::processCommand(const std::string &command)
 {
     std::string response;
+    Decoder decoder;
 
-    if (command == "ping")
-    {
-        response = "PONG\r\n";
-    }
-    else if (command == "exit")
-    {
-        response = "Goodbye!\r\n";
-        std::cout << "Closing socket after exit command." << std::endl;
-        send(clientSocket, response.c_str(), response.size(), 0);
+        std::vector<std::string> decodedarray = decoder.decodeCommand(command);
+        std::string decodedCommand = decodedarray[0];
 
-        if (closesocket(clientSocket) == SOCKET_ERROR)
+        if (decodedCommand == "ping")
         {
-            std::cerr << "Failed to close socket: " << WSAGetLastError() << std::endl;
+            response = "PONG\r\n";
         }
-        return; // Exit after closing the socket
-    }
-    else
-    {
-        response = "ERROR\r\n";
-    }
+        else if (decodedCommand == "exit")
+        {
+            response = "Goodbye!\r\n";
+            std::cout << "Closing socket after exit command." << std::endl;
+            send(clientSocket, response.c_str(), response.size(), 0);
 
-    send(clientSocket, response.c_str(), response.size(), 0);
+            // Close socket after sending the response
+            if (closesocket(clientSocket) == SOCKET_ERROR)
+            {
+                std::cerr << "Failed to close socket: " << WSAGetLastError() << std::endl;
+            }
+            return; // Exit after closing the socket
+        }
+        else
+        {
+            response = "ERROR\r\n";
+        }
+
+        send(clientSocket, response.c_str(), response.size(), 0);
+     
 }

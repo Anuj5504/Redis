@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <winsock2.h>
+#include "../encoder/resp_encoder.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -87,6 +88,7 @@ int main() {
     while (true) {
         std::cout << "> ";
         std::getline(std::cin, command);
+        Encoder encoder;
 
         // Trim leading and trailing spaces
         command.erase(0, command.find_first_not_of(' '));
@@ -96,13 +98,17 @@ int main() {
             continue; // Skip empty commands
         }
 
+        std::vector<std::string> commandArray=encoder.convertIntoArray(command);
+
+        std::string encodedCommand = encoder.encodeArray(commandArray);
+
         if (command == "exit") {
             std::cout << "Exiting..." << std::endl;
-            sendCommand(clientSocket, "exit");
+            sendCommand(clientSocket, encodedCommand);
             break; 
         }
 
-        if (!sendCommand(clientSocket, command)) {
+        if (!sendCommand(clientSocket, encodedCommand)) {
             std::cout<<"Server disconnected!"<<std::endl;
             break; 
         }
