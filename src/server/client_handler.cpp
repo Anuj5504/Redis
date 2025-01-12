@@ -2,6 +2,7 @@
 #include "../decoder/resp_decoder.h"
 #include <iostream>
 #include <cstring>
+#include <unordered_map>
 
 void ClientHandler::setNonBlocking(SOCKET sock)
 {
@@ -75,37 +76,54 @@ void ClientHandler::handle()
         }
     }
 }
+std::unordered_map<std::string, std::string> hash;
 
 void ClientHandler::processCommand(const std::string &command)
 {
-    std::string response;
+
     Decoder decoder;
+    std::vector<std::string> decodedarray = decoder.decodeCommand(command);
+    std::string decodedCommand = decodedarray[0];
 
-        std::vector<std::string> decodedarray = decoder.decodeCommand(command);
-        std::string decodedCommand = decodedarray[0];
+    std::string response;
 
-        if (decodedCommand == "ping")
+    if (decodedCommand == "ping")
+    {
+        response = "PONG\r\n";
+    }
+    else if (decodedCommand == "set")
+    {
+        hash[decodedarray[1]] = decodedarray[2];
+        response = "Command processed\r\n";
+    }
+    else if (decodedCommand == "get")
+    {
+        if (hash.find(decodedarray[1]) == hash.end())
         {
-            response = "PONG\r\n";
-        }
-        else if (decodedCommand == "exit")
-        {
-            response = "Goodbye!\r\n";
-            std::cout << "Closing socket after exit command." << std::endl;
-            send(clientSocket, response.c_str(), response.size(), 0);
-
-            // Close socket after sending the response
-            if (closesocket(clientSocket) == SOCKET_ERROR)
-            {
-                std::cerr << "Failed to close socket: " << WSAGetLastError() << std::endl;
-            }
-            return; // Exit after closing the socket
+            response = "Key not found\r\n";
         }
         else
         {
-            response = "ERROR\r\n";
+            response = hash[decodedarray[1]] +"\r\n";
         }
-
+    }
+    else if (decodedCommand == "exit")
+    {
+        response = "Goodbye!\r\n";
+        std::cout << "Closing socket after exit command." << std::endl;
         send(clientSocket, response.c_str(), response.size(), 0);
-     
+
+        // Close socket after sending the response
+        if (closesocket(clientSocket) == SOCKET_ERROR)
+        {
+            std::cerr << "Failed to close socket: " << WSAGetLastError() << std::endl;
+        }
+        return; // Exit after closing the socket
+    }
+    else
+    {
+        response = "ERROR\r\n";
+    }
+
+    send(clientSocket, response.c_str(), response.size(), 0);
 }

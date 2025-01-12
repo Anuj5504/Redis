@@ -1,0 +1,2 @@
+g++ -o server.exe ../server/server.cpp ../server/client_handler.cpp ../decoder/decoder.cpp  -lws2_32
+g++ -o client.exe ../client/client.cpp ../encoder/encoder.cpp -lws2_32

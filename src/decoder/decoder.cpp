@@ -10,7 +10,7 @@ std::vector<std::string> Decoder::decodeCommand(const std::string &command)
     std::istringstream stream(command);
     std::string line;
 
-    if (!std::getline(stream, line))
+    if (!getline(stream, line))
     {
         throw std::invalid_argument("Invalid command format: No arguments length found");
     }
@@ -19,18 +19,25 @@ std::vector<std::string> Decoder::decodeCommand(const std::string &command)
     {
         throw std::invalid_argument("Invalid command format: Expected '*' at the start");
     }
-
-    int n = std::stoi(line.substr(1)); // Remove '*' character
-
+    int n = std::stoi(line.substr(1)); // Remove '*' 
     getline(stream, line);
 
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i <n; i++)
     {
-        int argLength = std::stoi(line.substr(1)); // remove the '$' character and get the argument length
+        int argLength = std::stoi(line.substr(1)); // remove the '$'
         std::getline(stream, line);
-        std::cout<<line<<std::endl;
         decodedCommand.push_back(line.substr(0, argLength));
+        std::getline(stream, line);//go to new line
     }
+
+    // for(int i=0;i<n;i++) {
+    //     std::cout<<decodedCommand[i]<<std::endl;
+    // }
 
     return decodedCommand;
 }
+
+// int main() {
+//     Decoder d;
+//     d.decodeCommand("");
+// }
