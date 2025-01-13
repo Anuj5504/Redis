@@ -3,6 +3,10 @@
 #include <iostream>
 #include <cstring>
 #include <unordered_map>
+#include <mutex>
+
+std::unordered_map<std::string, std::string> hash;
+std::mutex hashMutex;
 
 void ClientHandler::setNonBlocking(SOCKET sock)
 {
@@ -16,7 +20,6 @@ ClientHandler::~ClientHandler()
 {
     closesocket(clientSocket);
 }
-
 
 void ClientHandler::handle()
 {
@@ -64,7 +67,6 @@ void ClientHandler::handle()
         }
     }
 }
-std::unordered_map<std::string, std::string> hash;
 
 void ClientHandler::processCommand(const std::string &command)
 {
@@ -81,18 +83,34 @@ void ClientHandler::processCommand(const std::string &command)
     }
     else if (decodedCommand == "SET")
     {
-        hash[decodedarray[1]] = decodedarray[2];
-        response = "Command processed\r\n";
-    }
-    else if (decodedCommand == "GET")
-    {
-        if (hash.find(decodedarray[1]) == hash.end())
+        if (decodedarray.size() < 3)
         {
-            response = "Key not found\r\n";
+            response = "Error: SET requires a key and a value\r\n";
         }
         else
         {
-            response = hash[decodedarray[1]] +"\r\n";
+            std::lock_guard<std::mutex> lock(hashMutex); // Lock the mutex
+            hash[decodedarray[1]] = decodedarray[2];
+            response = "OK\r\n";
+        }
+    }
+    else if (decodedCommand == "GET")
+    {
+        if (decodedarray.size() < 2)
+        {
+            response = "Error: GET requires a key\r\n";
+        }
+        else
+        {
+            std::lock_guard<std::mutex> lock(hashMutex); // Lock the mutex
+            if (hash.find(decodedarray[1]) == hash.end())
+            {
+                response = "Error: Key not found\r\n";
+            }
+            else
+            {
+                response = hash[decodedarray[1]] + "\r\n";
+            }
         }
     }
     else if (decodedCommand == "EXIT")
@@ -106,11 +124,12 @@ void ClientHandler::processCommand(const std::string &command)
         {
             std::cerr << "Failed to close socket: " << WSAGetLastError() << std::endl;
         }
-        return; // Exit after closing the socket
+        return;
     }
     else
     {
-        response = "ERROR\r\n";
+        response = "Error unknown command : " + decodedCommand;
+        std::cout << response << std::endl;
     }
 
     send(clientSocket, response.c_str(), response.size(), 0);
