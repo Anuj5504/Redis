@@ -11,7 +11,6 @@ public:
 
     void setNonBlocking(SOCKET sock);
     void handle();
-    void convertToLowerCase(std::string& str);
 
 private:
     SOCKET clientSocket;

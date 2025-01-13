@@ -17,17 +17,6 @@ ClientHandler::~ClientHandler()
     closesocket(clientSocket);
 }
 
-void ClientHandler::convertToLowerCase(std::string &str)
-{
-    for (char &c : str)
-    {
-        if (c == '\r' || c == '\n')
-        {
-            continue;
-        }
-        c = tolower(c);
-    }
-}
 
 void ClientHandler::handle()
 {
@@ -44,7 +33,6 @@ void ClientHandler::handle()
         if (bytesRead > 0)
         {
             std::string command(buffer, 0, bytesRead);
-            convertToLowerCase(command);
             std::cout << "Received command: " << command << std::endl;
 
             // Strip any newline characters if present
@@ -87,16 +75,16 @@ void ClientHandler::processCommand(const std::string &command)
 
     std::string response;
 
-    if (decodedCommand == "ping")
+    if (decodedCommand == "PING")
     {
         response = "PONG\r\n";
     }
-    else if (decodedCommand == "set")
+    else if (decodedCommand == "SET")
     {
         hash[decodedarray[1]] = decodedarray[2];
         response = "Command processed\r\n";
     }
-    else if (decodedCommand == "get")
+    else if (decodedCommand == "GET")
     {
         if (hash.find(decodedarray[1]) == hash.end())
         {
@@ -107,7 +95,7 @@ void ClientHandler::processCommand(const std::string &command)
             response = hash[decodedarray[1]] +"\r\n";
         }
     }
-    else if (decodedCommand == "exit")
+    else if (decodedCommand == "EXIT")
     {
         response = "Goodbye!\r\n";
         std::cout << "Closing socket after exit command." << std::endl;
